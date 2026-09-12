@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTINEL AI — Intelligent Disaster Command Platform</title>
+  <meta name="description" content="Professional emergency operations platform used by disaster-control officers, rescue teams, and volunteers during floods and natural disasters.">
+
+  <!-- Leaflet CSS for GIS Mapping -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <!-- Top Flashing Emergency Alarm Banner (Shown when siren/alarm is active) -->
+  <div id="top-alarm-banner" class="emergency-alarm-banner" style="display: none;"></div>
+
+  <div id="app-root">
+    <!-- ─────────────────────────────────────────────
+         PERSISTENT LEFT SIDEBAR
+         ───────────────────────────────────────────── -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge">
+          <div class="brand-icon">S</div>
+          <div>
+            <span class="brand-title">SENTINEL AI</span>
+            <span class="brand-sub">TAMIL NADU</span>
+          </div>
+        </div>
+        <span id="sidebar-role-badge" class="badge badge-p1" style="margin-left: auto; font-size: 9px;">OFFICIAL</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- COMMAND CENTER -->
+        <div class="nav-group">
+          <div class="nav-group-title">Command Center</div>
+          <button class="nav-item active" data-view="overview" id="nav-overview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" data-view="liveMap" id="nav-live-map">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            <span>Live Map</span>
+          </button>
+          <button class="nav-item" data-view="riskZones" id="nav-risk-zones">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+            <span>Risk Zones</span>
+            <span class="nav-badge">4</span>
+          </button>
+          <button class="nav-item" data-view="waterLevels" id="nav-water-levels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            <span>Water Levels</span>
+            <span class="nav-badge" style="background:var(--risk-red-bg); color:var(--risk-red);">Watch</span>
+          </button>
+        </div>
+
+        <!-- RESPONSE -->
+        <div class="nav-group">
+          <div class="nav-group-title">Response</div>
+          <button class="nav-item" data-view="alarmSms" id="nav-alarm-sms" style="border-left: 2px solid var(--risk-red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span style="font-weight: 700; color: var(--risk-red);">Alarm & SMS</span>
+            <span class="nav-badge" style="background: var(--risk-red); color: #fff;">Alert</span>
+          </button>
+          <button class="nav-item" data-view="volunteer" id="nav-volunteer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Volunteer</span>
+            <span class="nav-badge">Tasks</span>
+          </button>
+          <button class="nav-item" data-view="rescueTeams" id="nav-rescue-teams">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span>Rescue Teams</span>
+            <span class="nav-badge">4</span>
+          </button>
+          <button class="nav-item" data-view="rescuePriority" id="nav-rescue-priority">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            <span>Rescue Priorities</span>
+            <span class="nav-badge" style="background:var(--risk-red); color:#fff;">P1</span>
+          </button>
+          <button class="nav-item" data-view="shelters" id="nav-shelters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Shelters</span>
+            <span class="nav-badge">3</span>
+          </button>
+          <button class="nav-item" data-view="routes" id="nav-routes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+            <span>Routes</span>
+          </button>
+        </div>
+
+        <!-- RECOVERY -->
+        <div class="nav-group">
+          <div class="nav-group-title">Recovery</div>
+          <button class="nav-item" data-view="recovery" id="nav-recovery">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span>Damage & Recovery</span>
+          </button>
+        </div>
+
+        <!-- INTELLIGENCE -->
+        <div class="nav-group">
+          <div class="nav-group-title">Intelligence</div>
+          <button class="nav-item" data-view="historical" id="nav-historical">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            <span>Historical Events</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="nav-item" data-view="settings" id="nav-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Settings & Profile</span>
+        </button>
+        <button class="nav-item" data-view="help" id="nav-help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span>Help & Protocols</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ─────────────────────────────────────────────
+         MAIN CONTENT AREA & TOP HEADER
+         ───────────────────────────────────────────── -->
+    <main class="app-main">
+      <header class="app-header">
+        <div class="header-left">
+          <!-- All 38 Tamil Nadu Districts Selector -->
+          <div class="response-zone-select">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <select id="district-selector">
+              <!-- Populated with all 38 districts -->
+            </select>
+          </div>
+
+          <!-- GPS Weather & Temperature Telemetry Widget -->
+          <div class="header-weather-widget" id="header-gps-weather" title="Click to refresh real-time GPS location weather" onclick="window.sentinelState.detectGpsWeather()">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="system-status-indicator">
+            <span class="status-dot-pulse"></span>
+            OPERATIONAL
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Live Telemetry Clock -->
+          <div class="telemetry-time">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="clock-telemetry">--:--:--</span>
+            <span style="font-size:10px; color:var(--text-muted);">IST</span>
+          </div>
+
+          <!-- Alarm Trigger Quick Button -->
+          <button class="header-btn" style="border-color: var(--risk-red-border); color: var(--risk-red); font-weight: 700;" onclick="window.sentinelState.setView('alarmSms')">
+            🚨 Alarm & SMS
+          </button>
+
+          <!-- SitRep Export -->
+          <button class="header-btn" onclick="window.generateDamageReportModal()">
+            SitRep Log
+          </button>
+
+          <!-- Ask SENTINEL AI -->
+          <button class="header-btn" onclick="window.sentinelState.toggleAiAssistant()">
+            Ask SENTINEL
+          </button>
+
+          <!-- User Profile & Quick Logout -->
+          <div class="user-profile-badge">
+            <div class="avatar" id="header-avatar">HO</div>
+            <div class="profile-meta">
+              <span class="profile-name" id="header-profile-name">Commander V. Raman</span>
+              <span class="profile-role" id="header-profile-role">Higher Official</span>
+            </div>
+            <button class="btn btn-sm btn-subtle" style="padding: 2px 6px; font-size: 11px; color: var(--risk-red);" title="Log out of session" onclick="window.handleLogoutAction()">
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Dynamic View Content -->
+      <section class="app-content" id="main-content-area">
+        <!-- Rendered dynamically by views -->
+      </section>
+    </main>
+  </div>
+
+  <!-- ─────────────────────────────────────────────
+       SLIDE-OVER DRAWERS & MODALS
+       ───────────────────────────────────────────── -->
+  <!-- Backdrop -->
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="window.closeZoneDetailDrawer()"></div>
+
+  <!-- Zone Detail Drawer -->
+  <div class="slide-drawer" id="zone-detail-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="zone-drawer-title">Zone Dossier</div>
+      <button class="drawer-close" onclick="window.closeZoneDetailDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="zone-drawer-body"></div>
+    <div class="drawer-footer" id="zone-drawer-footer"></div>
+  </div>
+
+  <!-- Global Modal Dialog Container -->
+  <div class="modal-overlay" id="global-modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="global-modal-title">Modal Title</div>
+        <button class="drawer-close" onclick="window.closeGlobalModal()">✕</button>
+      </div>
+      <div class="modal-body" id="global-modal-body"></div>
+      <div class="modal-footer" id="global-modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- Non-Intrusive Floating AI Assistant -->
+  <button class="ai-assistant-toggle-btn" id="ai-assistant-toggle">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+    Ask SENTINEL
+  </button>
+
+  <div class="ai-assistant-drawer" id="ai-assistant-drawer">
+    <div class="ai-header">
+      <div style="font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
+        <span style="width:6px; height:6px; border-radius:50%; background:var(--risk-green);"></span>
+        SENTINEL TACTICAL AI
+      </div>
+      <button class="drawer-close" id="ai-drawer-close">✕</button>
+    </div>
+
+    <!-- Quick Prompt Chips -->
+    <div class="ai-chips-list">
+      <button class="ai-chip" onclick="window.sendQuickAiPrompt('What should responders do in Zone B2?')">What to do in Zone B2?</button>
+      <button class="ai-chip" onclick="window.sendQuickAiPrompt('How to trigger GPS emergency SMS broadcast?')">Emergency SMS trigger</button>
+      <button class="ai-chip" onclick="window.sendQuickAiPrompt('Is Route R7 clear?')">Is Route R7 clear?</button>
+      <button class="ai-chip" onclick="window.sendQuickAiPrompt('Which shelters have capacity?')">Shelter capacity</button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="ai-chat-body" id="ai-chat-body"></div>
+
+    <!-- Input Box -->
+    <div class="ai-input-row">
+      <input type="text" id="ai-chat-input" placeholder="Ask situational query (e.g. Zone B2 recommendations)..." />
+      <button class="btn btn-primary btn-sm" id="ai-chat-send">Send</button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet GIS JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Application Logic Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/views/login.js"></script>
+  <script src="js/views/overview.js"></script>
+  <script src="js/views/water.js"></script>
+  <script src="js/views/volunteer.js"></script>
+  <script src="js/views/rescueTeams.js"></script>
+  <script src="js/views/rescuePriority.js"></script>
+  <script src="js/views/shelters.js"></script>
+  <script src="js/views/routes.js"></script>
+  <script src="js/views/alarmSms.js"></script>
+  <script src="js/views/recovery.js"></script>
+  <script src="js/views/historical.js"></script>
+  <script src="js/views/liveMap.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/views/askSentinel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
